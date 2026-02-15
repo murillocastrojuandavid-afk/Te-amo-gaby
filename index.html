@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galaxia de Amor</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background: radial-gradient(circle at center, #1a0033, #000000);
+    font-family: Arial, sans-serif;
+}
+
+#mensaje{
+    position:absolute;
+    top:20px;
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:22px;
+    background:rgba(255,255,255,0.1);
+    padding:12px;
+    border-radius:20px;
+    backdrop-filter:blur(6px);
+    z-index:10;
+}
+
+/* Créditos sonido */
+#creditos{
+    position:absolute;
+    bottom:15px;
+    right:20px;
+    color:rgba(255,255,255,0.7);
+    font-size:12px;
+    z-index:10;
+    font-style:italic;
+}
+</style>
+</head>
+
+<body>
+
+<div id="mensaje">Te Amo Muchote Mi Ojitos Brillantes ♥️</div>
+<div id="creditos">🎵 Quiet Music — Stacey Barelos</div>
+
+<!-- Sonido de fondo -->
+<audio id="bg-sound" loop>
+    <source src="Quiet Music.mp3" type="audio/mpeg">
+</audio>
+
+<!-- THREE JS (GitHub compatible) -->
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+
+<script>
+/* ---------- SONIDO ---------- */
+const bgSound = document.getElementById("bg-sound");
+let soundStarted = false;
+
+window.addEventListener("click", ()=>{
+    if(!soundStarted){
+        bgSound.volume = 0.5;
+        bgSound.play().catch(()=>{});
+        soundStarted = true;
+    }
+});
+
+/* ---------- THREE JS ---------- */
+
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
+let renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+camera.position.z = 70;
+
+/* Esfera */
+const geometrySphere = new THREE.SphereGeometry(10, 64, 64);
+const materialSphere = new THREE.MeshStandardMaterial({
+    color: 0xff00ff,
+    emissive: 0x5500ff,
+    emissiveIntensity: 1.5,
+    roughness: 0.2,
+    metalness: 0.8
+});
+
+const esfera = new THREE.Mesh(geometrySphere, materialSphere);
+scene.add(esfera);
+
+const light = new THREE.PointLight(0xffffff, 2, 500);
+light.position.set(0,0,50);
+scene.add(light);
+
+/* Frases */
+const frases = [
+"Mi Amor ♥️","Mi Vida ✨","Mi Cielo 🥺","Eres Mi 🌍",
+"Mi Princesa 👑","Mi Corazón ","Mi Tesoro 💎","Mi Universo 🌌",
+"Te Amo Muchuoooiiu","Mi Estrellita ⭐","Mi Bonita 👉🏻👈🏻",
+"Mi Infinit ♾️","Mi Sueño 💭","Mi Luz 🌟","Mi Destino 💫",
+"Contigo Todo 💞","Mi Felicidad 🌸","Mi Paz ","Mi Toda Bonita ",
+"Mi Reina 👑","Mi Casualidad Favorita ","Mi Locura 😍",
+"Mi Ángelito 😇","Mi Eternidad "
+];
+
+const grupo = new THREE.Group();
+scene.add(grupo);
+
+const loader = new THREE.FontLoader();
+
+loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font){
+    for(let i=0;i<300;i++){
+        const texto = frases[Math.floor(Math.random()*frases.length)];
+        const geometry = new THREE.TextGeometry(texto,{
+            font:font,
+            size:1.2,
+            height:0.2
+        });
+
+        const material = new THREE.MeshBasicMaterial({color:0xffffff});
+        const mesh = new THREE.Mesh(geometry,material);
+
+        const radius = 120;
+        const theta = Math.random()*2*Math.PI;
+        const phi = Math.acos((Math.random()*2)-1);
+
+        mesh.position.x = radius*Math.sin(phi)*Math.cos(theta);
+        mesh.position.y = radius*Math.sin(phi)*Math.sin(theta);
+        mesh.position.z = radius*Math.cos(phi);
+
+        grupo.add(mesh);
+    }
+});
+
+/* Estrellas */
+const starGeometry = new THREE.BufferGeometry();
+const starCount = 4000;
+const positions = [];
+
+for(let i=0;i<starCount;i++){
+    positions.push((Math.random()-0.5)*2000);
+    positions.push((Math.random()-0.5)*2000);
+    positions.push((Math.random()-0.5)*2000);
+}
+
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
+const starMaterial = new THREE.PointsMaterial({color:0xffffff,size:1});
+const stars = new THREE.Points(starGeometry,starMaterial);
+scene.add(stars);
+
+/* Corazones */
+const heartTexture = new THREE.TextureLoader().load("https://i.imgur.com/Z6X9Z8B.png");
+const heartMaterial = new THREE.SpriteMaterial({map:heartTexture});
+const hearts = [];
+
+for(let i=0;i<50;i++){
+    const sprite = new THREE.Sprite(heartMaterial);
+    sprite.scale.set(5,5,5);
+    sprite.position.set(
+        (Math.random()-0.5)*200,
+        (Math.random()-0.5)*200,
+        (Math.random()-0.5)*200
+    );
+    scene.add(sprite);
+    hearts.push(sprite);
+}
+
+/* Click explosión */
+window.addEventListener("click",()=>{
+    hearts.forEach(h=>{
+        h.position.set(
+            (Math.random()-0.5)*300,
+            (Math.random()-0.5)*300,
+            (Math.random()-0.5)*300
+        );
+    });
+});
+
+/* Mouse */
+let mouseX=0, mouseY=0;
+document.addEventListener("mousemove",(e)=>{
+    mouseX=(e.clientX-window.innerWidth/2)*0.0005;
+    mouseY=(e.clientY-window.innerHeight/2)*0.0005;
+});
+
+/* Animación */
+let hue=0;
+function animate(){
+    requestAnimationFrame(animate);
+
+    grupo.rotation.y+=0.001;
+    grupo.rotation.x+=mouseY;
+    grupo.rotation.y+=mouseX;
+
+    esfera.rotation.y+=0.003;
+
+    hue+=0.5;
+    const color = new THREE.Color(`hsl(${hue%360},100%,50%)`);
+    materialSphere.emissive = color;
+
+    const scale = 1 + Math.sin(Date.now()*0.003)*0.05;
+    esfera.scale.set(scale,scale,scale);
+
+    renderer.render(scene,camera);
+}
+animate();
+
+/* Resize */
+window.addEventListener("resize",()=>{
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+</script>
+
+</body>
+</html>
